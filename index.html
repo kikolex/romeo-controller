@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoMeo BLE Controller</title>
+
+<style>
+body {
+  background: #222;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  margin-top: 30px;
+}
+
+button {
+  width: 90px;
+  height: 90px;
+  margin: 10px;
+  font-size: 40px;
+  border-radius: 20px;
+  border: none;
+  background: #444;
+  color: white;
+}
+
+button:active {
+  background: #00aaff;
+}
+</style>
+</head>
+<body>
+
+<h2>RoMeo BLE – iOS Controller</h2>
+
+<button onclick="sendCommand('W')">⬆️</button><br>
+<button onclick="sendCommand('A')">⬅️</button>
+<button onclick="sendCommand('E')">⏹️</button>
+<button onclick="sendCommand('D')">➡️</button><br>
+<button onclick="sendCommand('S')">⬇️</button><br><br>
+
+<button onclick="connect()">🔗 Conectar</button>
+
+<script>
+let device;
+let characteristic;
+
+// UUID do HM-10 / CC2541
+const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+const CHAR_UUID    = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+async function connect() {
+    try {
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: "RoMeo" }],
+            optionalServices: [SERVICE_UUID]
+        });
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        characteristic = await service.getCharacteristic(CHAR_UUID);
+
+        alert("Conectado ao RoMeo BLE!");
+    }
+    catch (error) {
+        alert("Erro ao conectar: " + error);
+    }
+}
+
+async function sendCommand(cmd) {
+    if (!characteristic) {
+        alert("Primeiro tens de ligar (botão Conectar)");
+        return;
+    }
+
+    let data = new TextEncoder().encode(cmd);
+    await characteristic.writeValue(data);
+}
+</script>
+
+</body>
+</html>
